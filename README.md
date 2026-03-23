@@ -1,8 +1,5 @@
 # Brunegg Entsorgung (Home Assistant)
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=patrick&repository=waste_brunegg&category=integration)
-[![HACS](https://img.shields.io/badge/HACS-Default-41BDF5.svg?logo=home-assistant&logoColor=white)](https://github.com/hacs/integration)
-
 Home Assistant custom integration for Brunegg waste schedules.
 
 It fetches the latest PDF from the Gemeinde Brunegg Entsorgungsplan page, extracts:
@@ -22,6 +19,8 @@ and creates Home Assistant sensors with human-readable next occurrence states:
 ### Option 1: HACS (recommended)
 
 This follows the common HACS installation flow used by integrations such as `hacs_waste_collection_schedule`.
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=compr00t&repository=waste_brunegg&category=integration)
 
 1. Push this repository to GitHub.
 2. In Home Assistant, open **HACS**.

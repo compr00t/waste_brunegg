@@ -1,10 +1,10 @@
 {
   "domain": "brunegg_entsorgung",
   "name": "Brunegg Entsorgung",
-  "codeowners": ["@patrick"],
+  "codeowners": ["@compr00t"],
   "config_flow": true,
   "documentation": "https://www.brunegg.ch/entsorgungsplan",
-  "issue_tracker": "https://github.com/patrick/waste_brunegg/issues",
+  "issue_tracker": "https://github.com/compr00t/waste_brunegg/issues",
   "iot_class": "cloud_polling",
   "loggers": ["custom_components.brunegg_entsorgung"],
   "requirements": ["httpx==0.28.1", "beautifulsoup4==4.12.3", "pdfplumber==0.11.5"],
