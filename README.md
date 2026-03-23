@@ -1,5 +1,8 @@
 # Brunegg Entsorgung (Home Assistant)
 
+[![Open your Home Assistant instance and show the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs.svg)](https://my.home-assistant.io/redirect/hacs_store/)
+![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)
+
 Home Assistant custom integration for Brunegg waste schedules.
 
 It fetches the latest PDF from the Gemeinde Brunegg Entsorgungsplan page, extracts:
@@ -13,18 +16,6 @@ and creates Home Assistant sensors with human-readable next occurrence states:
 - `Heute`
 - `Morgen`
 - `in X Tagen`
-
-## Features
-
-- Daily automatic update (every 24h)
-- Config flow in Home Assistant UI
-- Select which streams to include:
-  - Hauskehricht (on/off)
-  - Grüngutabfuhr (on/off)
-  - Waschabo tier (`none`, `bronze`, `silber`, `gold`)
-- Combined sensor: `Entsorgungskalender`
-- Health sensor: `Entsorgung Health` (`ok` / `error`)
-- No local PDF persistence (PDF is processed in memory)
 
 ## Installation
 
@@ -57,41 +48,4 @@ This follows the common HACS installation flow used by integrations such as `hac
    - Waschabo tier
 
 You can adjust these later via integration **Configure** (options flow).
-
-## Entities
-
-The integration provides these sensors:
-
-- `Hauskehricht`
-- `Grüngutabfuhr`
-- `Waschaboservice`
-- `Entsorgungskalender` (combined)
-- `Entsorgung Health`
-
-Each schedule sensor includes attributes:
-
-- `next_date`
-- `upcoming_dates`
-- `plan_year`
-- `source_pdf`
-
-Health sensor attributes:
-
-- `last_update_success`
-- `last_exception`
-- `plan_year`
-- `source_pdf`
-
-## HACS / Repository notes
-
-Repository layout is aligned with HACS integration requirements:
-
-- one integration under `custom_components/brunegg_entsorgung`
-- `hacs.json` in repository root
-- `brands/icon.png` present
-
-Before publishing, ensure `manifest.json` values are set to your actual GitHub account/repository:
-
-- `codeowners`
-- `issue_tracker`
 
