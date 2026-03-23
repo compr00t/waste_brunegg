@@ -30,7 +30,6 @@ from .const import (
 from .coordinator import BruneggCoordinator
 
 SENSOR_NAMES_DE: dict[str, str] = {
-    "health": "Diagnose",
     "hauskehricht": "Hauskehricht",
     "gruengut": "Grüngutabfuhr",
     "waschabo": "Waschaboservice",
@@ -80,13 +79,9 @@ class BruneggSensorDescription(SensorEntityDescription):
 
 SENSOR_DESCRIPTIONS: tuple[BruneggSensorDescription, ...] = (
     BruneggSensorDescription(
-        key="health",
-        translation_key="health",
-        date_getter=lambda _c, _entry: [],
-    ),
-    BruneggSensorDescription(
         key="hauskehricht",
         translation_key="hauskehricht",
+        icon="mdi:trash-can-outline",
         date_getter=lambda c, entry: (
             _parse_override_dates(
                 ({**entry.data, **entry.options}).get(CONF_OVERRIDE_HAUSKEHRICHT_DATES)
@@ -101,6 +96,7 @@ SENSOR_DESCRIPTIONS: tuple[BruneggSensorDescription, ...] = (
     BruneggSensorDescription(
         key="gruengut",
         translation_key="gruengut",
+        icon="mdi:leaf",
         date_getter=lambda c, entry: (
             _parse_override_dates(
                 ({**entry.data, **entry.options}).get(CONF_OVERRIDE_GRUENGUT_DATES)
@@ -115,6 +111,7 @@ SENSOR_DESCRIPTIONS: tuple[BruneggSensorDescription, ...] = (
     BruneggSensorDescription(
         key="waschabo",
         translation_key="waschabo",
+        icon="mdi:washing-machine",
         date_getter=lambda c, entry: (
             _parse_override_dates(
                 ({**entry.data, **entry.options}).get(CONF_OVERRIDE_WASCHABO_DATES)
@@ -138,6 +135,7 @@ SENSOR_DESCRIPTIONS: tuple[BruneggSensorDescription, ...] = (
     BruneggSensorDescription(
         key="gesamt",
         translation_key="gesamt",
+        icon="mdi:calendar-month",
         date_getter=lambda c, entry: _combined_dates(c, entry),
     ),
 )
@@ -204,26 +202,12 @@ class BruneggSensorEntity(CoordinatorEntity[BruneggCoordinator], SensorEntity):
 
     @property
     def native_value(self) -> str:
-        if self.entity_description.key == "health":
-            return "ok" if self.coordinator.last_update_success else "error"
         today = date.today()
         dates = self.entity_description.date_getter(self.coordinator, self._entry)
         return _relative_text(today, _next_date(dates, today))
 
     @property
     def extra_state_attributes(self) -> dict[str, object]:
-        if self.entity_description.key == "health":
-            return {
-                "last_update_success": self.coordinator.last_update_success,
-                "last_exception": (
-                    str(self.coordinator.last_exception)
-                    if self.coordinator.last_exception
-                    else None
-                ),
-                "plan_year": self.coordinator.data.parsed.plan_year,
-                "source_pdf": self.coordinator.data.pdf_url,
-            }
-
         opts = {**self._entry.data, **self._entry.options}
         occurrences_count = opts.get(
             CONF_OCCURRENCES_COUNT, DEFAULT_OCCURRENCES_COUNT
@@ -290,8 +274,6 @@ class BruneggSensorEntity(CoordinatorEntity[BruneggCoordinator], SensorEntity):
         next_dates = _next_occurrences(used_dates, today, occurrences_count)
 
         return {
-            "plan_year": self.coordinator.data.parsed.plan_year,
-            "source_pdf": self.coordinator.data.pdf_url,
             "configured_waschabo_tier": configured_tier,
             "extraction_logic": extracted_logic,
             "extracted_dates": [d.isoformat() for d in extracted_dates],

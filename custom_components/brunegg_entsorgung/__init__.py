@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from .const import CONF_ENTSORGUNGSPLAN_URL, DEFAULT_ENTSORGUNGSPLAN_URL, DOMAIN
 from .coordinator import BruneggCoordinator
 
-PLATFORMS: list[Platform] = [Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.TEXT]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -49,9 +49,10 @@ async def async_get_config_entry_diagnostics(
     opts: dict[str, Any] = {**entry.data, **entry.options}
     waschabo_tier = opts.get("waschabo_tier")
     return {
-        "plan_year": parsed.plan_year,
+        "plan_year": str(parsed.plan_year),
         "last_update_success": coordinator.last_update_success,
         "last_exception": str(coordinator.last_exception) if coordinator.last_exception else None,
+        "source_pdf": coordinator.data.pdf_url,
         "entsorgungsplan_url": opts.get(CONF_ENTSORGUNGSPLAN_URL),
         "include_hauskehricht": opts.get("include_hauskehricht"),
         "include_gruengut": opts.get("include_gruengut"),
@@ -62,5 +63,12 @@ async def async_get_config_entry_diagnostics(
             "waschabo_bronze": len(parsed.waschabo.get("Bronze", [])),
             "waschabo_silber": len(parsed.waschabo.get("Silber", [])),
             "waschabo_gold": len(parsed.waschabo.get("Gold", [])),
+        },
+        "overrides": {
+            "override_hauskehricht_dates": opts.get(
+                "override_hauskehricht_dates"
+            ),
+            "override_gruengut_dates": opts.get("override_gruengut_dates"),
+            "override_waschabo_dates": opts.get("override_waschabo_dates"),
         },
     }
