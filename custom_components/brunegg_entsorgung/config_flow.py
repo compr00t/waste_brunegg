@@ -24,7 +24,6 @@ from .const import (
     MIN_OCCURRENCES_COUNT,
     WASCHABO_TIERS,
 )
-from .coordinator import BruneggCoordinator
 
 
 def _schema(defaults: dict[str, Any], *, include_overrides: bool = False) -> vol.Schema:
@@ -98,42 +97,7 @@ class BruneggOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
         defaults = {**self._entry.data, **self._entry.options}
-        placeholders = self._build_placeholders(defaults)
         return self.async_show_form(
             step_id="init",
             data_schema=_schema(defaults, include_overrides=True),
-            description_placeholders=placeholders,
         )
-
-    def _build_placeholders(self, defaults: dict[str, Any]) -> dict[str, str]:
-        coordinator: BruneggCoordinator | None = None
-        if self.hass and DOMAIN in self.hass.data:
-            coordinator = self.hass.data[DOMAIN].get(self._entry.entry_id)
-
-        if not coordinator or not coordinator.data:
-            return {
-                "logic": "Vorschau wird nach erfolgreicher Aktualisierung angezeigt.",
-                "hauskehricht": "-",
-                "gruengut": "-",
-                "waschabo": "-",
-            }
-
-        tier = defaults.get(CONF_WASCHABO_TIER, DEFAULT_WASCHABO_TIER)
-        tier_de = {"bronze": "Bronze", "silber": "Silber", "gold": "Gold"}.get(
-            tier, "Bronze"
-        )
-        hk = ", ".join(d.isoformat() for d in coordinator.data.parsed.hauskehricht_dates[:8])
-        gg = ", ".join(d.isoformat() for d in coordinator.data.parsed.gruengut_dates[:8])
-        wa = ", ".join(
-            d.isoformat() for d in coordinator.data.parsed.waschabo.get(tier_de, [])[:8]
-        )
-        return {
-            "logic": (
-                "Hauskehricht: ab Startdatum woechentlich Dienstag. "
-                "Gruengut: explizite Termine + woechentlicher Bereich aus PDF. "
-                "Waschabo: Termine der gewaehlten Stufe."
-            ),
-            "hauskehricht": hk or "-",
-            "gruengut": gg or "-",
-            "waschabo": wa or "-",
-        }

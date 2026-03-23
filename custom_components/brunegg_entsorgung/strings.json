@@ -18,7 +18,7 @@
     "step": {
       "init": {
         "title": "Brunegg Entsorgung Optionen",
-        "description": "Extraktionslogik: {logic}\n\nAus PDF erkannte Werte (Vorschau):\nHauskehricht: {hauskehricht}\nGrüngut: {gruengut}\nWaschabo (gewählte Stufe): {waschabo}\n\nManuelle Korrektur: ISO-Daten als Liste eingeben (z.B. 2026-01-09,2026-01-23).",
+        "description": "Extrahierte Termine finden Sie in den Sensor-Attributen. Falls nötig können Sie unten ISO-Daten (YYYY-MM-DD) als Override eingeben.",
         "data": {
           "entsorgungsplan_url": "Entsorgungsplan-URL",
           "include_hauskehricht": "Hauskehricht einbeziehen",

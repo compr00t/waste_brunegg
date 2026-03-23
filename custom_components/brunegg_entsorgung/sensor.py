@@ -9,6 +9,7 @@ from homeassistant.components.sensor import SensorEntity, SensorEntityDescriptio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -27,6 +28,14 @@ from .const import (
     WASCHABO_NONE,
 )
 from .coordinator import BruneggCoordinator
+
+SENSOR_NAMES_DE: dict[str, str] = {
+    "health": "Diagnose",
+    "hauskehricht": "Hauskehricht",
+    "gruengut": "Grüngutabfuhr",
+    "waschabo": "Waschaboservice",
+    "gesamt": "Entsorgungskalender",
+}
 
 
 def _parse_override_dates(raw: str | None) -> list[date]:
@@ -173,7 +182,7 @@ async def async_setup_entry(
 
 
 class BruneggSensorEntity(CoordinatorEntity[BruneggCoordinator], SensorEntity):
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False
 
     def __init__(
         self,
@@ -185,7 +194,13 @@ class BruneggSensorEntity(CoordinatorEntity[BruneggCoordinator], SensorEntity):
         self.entity_description = description
         self._entry = entry
         self._attr_unique_id = f"{entry.entry_id}_{description.key}"
-        self._attr_name = None
+        self._attr_name = SENSOR_NAMES_DE.get(description.key, description.key)
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name="Brunegg Entsorgung",
+            manufacturer="Gemeinde Brunegg",
+            model="Entsorgungsplan",
+        )
 
     @property
     def native_value(self) -> str:
@@ -208,16 +223,80 @@ class BruneggSensorEntity(CoordinatorEntity[BruneggCoordinator], SensorEntity):
                 "plan_year": self.coordinator.data.parsed.plan_year,
                 "source_pdf": self.coordinator.data.pdf_url,
             }
+
+        opts = {**self._entry.data, **self._entry.options}
+        occurrences_count = opts.get(
+            CONF_OCCURRENCES_COUNT, DEFAULT_OCCURRENCES_COUNT
+        )
+
+        extracted_logic = (
+            "Hauskehricht: ab Startdatum woechentlich Dienstag. "
+            "Grüngut: explizite Termine + woechentlicher Bereich aus PDF. "
+            "Waschabo: Termine der gewaehlenen Stufe."
+        )
+
+        tier = opts.get(CONF_WASCHABO_TIER, DEFAULT_WASCHABO_TIER)
+        tier_de = {"bronze": "Bronze", "silber": "Silber", "gold": "Gold"}[tier]
+        configured_tier = (
+            {"none": "Kein Waschabo", "bronze": "Bronze", "silber": "Silber", "gold": "Gold"}
+            .get(tier, "Kein Waschabo")
+        )
+
+        extracted_hk = self.coordinator.data.parsed.hauskehricht_dates
+        extracted_gg = self.coordinator.data.parsed.gruengut_dates
+        extracted_wa = self.coordinator.data.parsed.waschabo.get(tier_de, [])
+
+        override_hk = _parse_override_dates(opts.get(CONF_OVERRIDE_HAUSKEHRICHT_DATES))
+        override_gg = _parse_override_dates(opts.get(CONF_OVERRIDE_GRUENGUT_DATES))
+        override_wa = _parse_override_dates(opts.get(CONF_OVERRIDE_WASCHABO_DATES))
+
+        extracted_dates: list[date]
+        override_dates: list[date]
+
+        if self.entity_description.key == "hauskehricht":
+            extracted_dates = extracted_hk
+            override_dates = override_hk
+        elif self.entity_description.key == "gruengut":
+            extracted_dates = extracted_gg
+            override_dates = override_gg
+        elif self.entity_description.key == "waschabo":
+            extracted_dates = extracted_wa
+            override_dates = override_wa
+        else:
+            include_hk = opts.get(CONF_INCLUDE_HAUSKEHRICHT, DEFAULT_INCLUDE_HAUSKEHRICHT)
+            include_gg = opts.get(CONF_INCLUDE_GRUENGUT, DEFAULT_INCLUDE_GRUENGUT)
+
+            extracted_dates = []
+            override_dates = []
+            if include_hk:
+                extracted_dates.extend(extracted_hk)
+                override_dates.extend(override_hk)
+            if include_gg:
+                extracted_dates.extend(extracted_gg)
+                override_dates.extend(override_gg)
+            if tier != WASCHABO_NONE:
+                extracted_dates.extend(extracted_wa)
+                override_dates.extend(override_wa)
+
+        extracted_dates = sorted(set(extracted_dates))
+        override_dates = sorted(set(override_dates))
+
+        used_dates = self.entity_description.date_getter(
+            self.coordinator, self._entry
+        )
+
         today = date.today()
-        dates = self.entity_description.date_getter(self.coordinator, self._entry)
-        nd = _next_date(dates, today)
-        options = {**self._entry.data, **self._entry.options}
-        occurrences_count = options.get(CONF_OCCURRENCES_COUNT, DEFAULT_OCCURRENCES_COUNT)
-        next_dates = _next_occurrences(dates, today, occurrences_count)
+        nd = _next_date(used_dates, today)
+        next_dates = _next_occurrences(used_dates, today, occurrences_count)
+
         return {
-            "next_date": nd.isoformat() if nd else None,
-            "next_occurrences": [d.isoformat() for d in next_dates],
-            "occurrences_count": occurrences_count,
             "plan_year": self.coordinator.data.parsed.plan_year,
             "source_pdf": self.coordinator.data.pdf_url,
+            "configured_waschabo_tier": configured_tier,
+            "extraction_logic": extracted_logic,
+            "extracted_dates": [d.isoformat() for d in extracted_dates],
+            "override_dates": [d.isoformat() for d in override_dates],
+            "using_override": bool(override_dates),
+            "next_date": nd.isoformat() if nd else None,
+            "next_occurrences": [d.isoformat() for d in next_dates],
         }
