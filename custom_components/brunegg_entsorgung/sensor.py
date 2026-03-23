@@ -78,6 +78,11 @@ def _format_date_de(d: date) -> str:
     return f"{d.day:02d}. {months[d.month]} {d.year}"
 
 
+def _join_lines(values: list[str]) -> str:
+    # HA attribute popover tends to flatten lists; using U+2028 forces a visible line break.
+    return "\u2028".join(values)
+
+
 @dataclass(frozen=True, kw_only=True)
 class BruneggSensorDescription(SensorEntityDescription):
     date_getter: Callable[[BruneggCoordinator, ConfigEntry], list[date]]
@@ -257,38 +262,19 @@ class BruneggSensorEntity(CoordinatorEntity[BruneggCoordinator], SensorEntity):
         next_dates = _next_occurrences(used_dates, today, occurrences_count)
 
         if self.entity_description.key == "gesamt":
-            logik_lines = []
-            logik_lines.append(
-                "Hauskehricht: ab Startdatum wöchentlich Dienstag."
-                if include_hk
-                else "Hauskehricht: nicht einbezogen."
-            )
-            logik_lines.append(
-                "Grüngut: explizite Termine + wöchentlicher Bereich aus PDF."
-                if include_gg
-                else "Grüngut: nicht einbezogen."
-            )
-            logik_lines.append(
-                "Waschabo: Termine der gewählten Stufe."
-                if tier != WASCHABO_NONE
-                else "Waschabo: kein Waschabo gewählt."
-            )
-
             return {
-                # Use lists instead of "\n"-joined strings so HA displays one item per line.
-                "Logik": logik_lines,
-                "Daten": [_format_date_de(d) for d in used_dates],
+                "Daten": _join_lines([_format_date_de(d) for d in used_dates]),
             }
 
         if self.entity_description.key in ("hauskehricht", "gruengut"):
             return {
                 "Nächste Leerung": _format_date_de(nd) if nd else "Keine Termine",
-                "Daten": [_format_date_de(d) for d in next_dates],
+                "Daten": _join_lines([_format_date_de(d) for d in next_dates]),
             }
 
         # waschabo
         return {
             "Nächste Reinigung": _format_date_de(nd) if nd else "Keine Termine",
-            "Daten": [_format_date_de(d) for d in next_dates],
+            "Daten": _join_lines([_format_date_de(d) for d in next_dates]),
             "Abo": configured_tier,
         }
