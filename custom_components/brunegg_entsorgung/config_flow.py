@@ -10,9 +10,6 @@ from .const import (
     CONF_INCLUDE_GRUENGUT,
     CONF_INCLUDE_HAUSKEHRICHT,
     CONF_OCCURRENCES_COUNT,
-    CONF_OVERRIDE_GRUENGUT_DATES,
-    CONF_OVERRIDE_HAUSKEHRICHT_DATES,
-    CONF_OVERRIDE_WASCHABO_DATES,
     CONF_WASCHABO_TIER,
     DEFAULT_ENTSORGUNGSPLAN_URL,
     DEFAULT_INCLUDE_GRUENGUT,
@@ -26,7 +23,7 @@ from .const import (
 )
 
 
-def _schema(defaults: dict[str, Any], *, include_overrides: bool = False) -> vol.Schema:
+def _schema(defaults: dict[str, Any]) -> vol.Schema:
     data: dict[Any, Any] = {
         vol.Required(
             CONF_ENTSORGUNGSPLAN_URL,
@@ -52,23 +49,6 @@ def _schema(defaults: dict[str, Any], *, include_overrides: bool = False) -> vol
             vol.Range(min=MIN_OCCURRENCES_COUNT, max=MAX_OCCURRENCES_COUNT),
         ),
     }
-    if include_overrides:
-        data.update(
-            {
-                vol.Optional(
-                    CONF_OVERRIDE_HAUSKEHRICHT_DATES,
-                    default=defaults.get(CONF_OVERRIDE_HAUSKEHRICHT_DATES, ""),
-                ): str,
-                vol.Optional(
-                    CONF_OVERRIDE_GRUENGUT_DATES,
-                    default=defaults.get(CONF_OVERRIDE_GRUENGUT_DATES, ""),
-                ): str,
-                vol.Optional(
-                    CONF_OVERRIDE_WASCHABO_DATES,
-                    default=defaults.get(CONF_OVERRIDE_WASCHABO_DATES, ""),
-                ): str,
-            }
-        )
     return vol.Schema(data)
 
 
@@ -99,5 +79,5 @@ class BruneggOptionsFlow(config_entries.OptionsFlow):
         defaults = {**self._entry.data, **self._entry.options}
         return self.async_show_form(
             step_id="init",
-            data_schema=_schema(defaults, include_overrides=False),
+            data_schema=_schema(defaults),
         )

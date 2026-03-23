@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from .const import CONF_ENTSORGUNGSPLAN_URL, DEFAULT_ENTSORGUNGSPLAN_URL, DOMAIN
 from .coordinator import BruneggCoordinator
 
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.TEXT]
+PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -63,12 +63,5 @@ async def async_get_config_entry_diagnostics(
             "waschabo_bronze": len(parsed.waschabo.get("Bronze", [])),
             "waschabo_silber": len(parsed.waschabo.get("Silber", [])),
             "waschabo_gold": len(parsed.waschabo.get("Gold", [])),
-        },
-        "overrides": {
-            "override_hauskehricht_dates": opts.get(
-                "override_hauskehricht_dates"
-            ),
-            "override_gruengut_dates": opts.get("override_gruengut_dates"),
-            "override_waschabo_dates": opts.get("override_waschabo_dates"),
         },
     }

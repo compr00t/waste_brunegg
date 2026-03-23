@@ -18,7 +18,7 @@
     "step": {
       "init": {
         "title": "Brunegg Entsorgung Optionen",
-        "description": "Extrahierte Termine finden Sie in den Sensor-Attributen. Falls nötig können Sie die Override-Daten im Gerät unter den Feldern „Override ... Termine“ anpassen.",
+        "description": "Extrahierte Termine finden Sie in den Sensor-Attributen.",
         "data": {
           "entsorgungsplan_url": "Entsorgungsplan-URL",
           "include_hauskehricht": "Hauskehricht einbeziehen",
@@ -42,7 +42,10 @@
   "entity": {
     "sensor": {
       "health": {
-        "name": "Diagnose"
+        "name": "Zustand"
+      },
+      "last_fetch": {
+        "name": "Synchronisation"
       },
       "hauskehricht": {
         "name": "Hauskehricht"
@@ -55,17 +58,6 @@
       },
       "gesamt": {
         "name": "Entsorgungskalender"
-      }
-    },
-    "text": {
-      "override_hauskehricht_dates": {
-        "name": "Override Hauskehricht Termine (ISO-Liste)"
-      },
-      "override_gruengut_dates": {
-        "name": "Override Grüngut Termine (ISO-Liste)"
-      },
-      "override_waschabo_dates": {
-        "name": "Override Waschabo Termine (ISO-Liste)"
       }
     }
   }

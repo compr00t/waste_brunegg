@@ -22,7 +22,7 @@ This follows the common HACS installation flow used by integrations such as `hac
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=compr00t&repository=waste_brunegg&category=integration)
 
-1. Push this repository to GitHub.
+1. Ensure the integration is available as a GitHub repository. If you're installing from the public `compr00t/waste_brunegg`, you do not need to push anything.
 2. In Home Assistant, open **HACS**.
 3. Go to **Custom repositories**.
 4. Add your repository URL as category **Integration**.
