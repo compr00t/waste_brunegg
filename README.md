@@ -22,18 +22,11 @@ This follows the common HACS installation flow used by integrations such as `hac
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=compr00t&repository=waste_brunegg&category=integration)
 
-1. Ensure the integration is available as a GitHub repository. If you're installing from the public `compr00t/waste_brunegg`, you do not need to push anything.
-2. In Home Assistant, open **HACS**.
-3. Go to **Custom repositories**.
-4. Add your repository URL as category **Integration**.
-5. Search for **Brunegg Entsorgung** and install it.
-6. Restart Home Assistant.
-
-### Option 2: Manual install
-
-1. Copy `custom_components/brunegg_entsorgung` to:
-   - `/config/custom_components/brunegg_entsorgung`
-2. Restart Home Assistant.
+1. In Home Assistant, open **HACS**.
+2. Go to **Custom repositories**.
+3. Add your repository URL as category **Integration**.
+4. Search for **Brunegg Entsorgung** and install it.
+5. Restart Home Assistant.
 
 ## Configuration
 
