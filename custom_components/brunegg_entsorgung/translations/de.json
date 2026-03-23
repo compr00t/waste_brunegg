@@ -1,0 +1,39 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Brunegg Entsorgung",
+        "description": "Quelle und enthaltene Abholarten konfigurieren.",
+        "data": {
+          "entsorgungsplan_url": "Entsorgungsplan-URL",
+          "include_hauskehricht": "Hauskehricht einbeziehen",
+          "include_gruengut": "Grüngutabfuhr einbeziehen",
+          "waschabo_tier": "Waschabo-Stufe"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Brunegg Entsorgung Optionen",
+        "data": {
+          "entsorgungsplan_url": "Entsorgungsplan-URL",
+          "include_hauskehricht": "Hauskehricht einbeziehen",
+          "include_gruengut": "Grüngutabfuhr einbeziehen",
+          "waschabo_tier": "Waschabo-Stufe"
+        }
+      }
+    }
+  },
+  "selector": {
+    "waschabo_tier": {
+      "options": {
+        "none": "Kein Waschabo",
+        "bronze": "Bronze",
+        "silber": "Silber",
+        "gold": "Gold"
+      }
+    }
+  }
+}

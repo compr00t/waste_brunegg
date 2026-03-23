@@ -1,0 +1,8 @@
+{
+  "name": "Brunegg Entsorgung",
+  "domains": ["brunegg_entsorgung"],
+  "homeassistant": "2024.6.0",
+  "content_in_root": false,
+  "country": "CH",
+  "render_readme": false
+}

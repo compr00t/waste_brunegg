@@ -1,0 +1,39 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Brunegg Entsorgung",
+        "description": "Configure schedule source and included streams.",
+        "data": {
+          "entsorgungsplan_url": "Entsorgungsplan URL",
+          "include_hauskehricht": "Include Hauskehricht",
+          "include_gruengut": "Include Gruengutabfuhr",
+          "waschabo_tier": "Waschabo tier"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Brunegg Entsorgung options",
+        "data": {
+          "entsorgungsplan_url": "Entsorgungsplan URL",
+          "include_hauskehricht": "Include Hauskehricht",
+          "include_gruengut": "Include Gruengutabfuhr",
+          "waschabo_tier": "Waschabo tier"
+        }
+      }
+    }
+  },
+  "selector": {
+    "waschabo_tier": {
+      "options": {
+        "none": "None",
+        "bronze": "Bronze",
+        "silber": "Silber",
+        "gold": "Gold"
+      }
+    }
+  }
+}
