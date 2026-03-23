@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
+import re
 from typing import Callable
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
@@ -14,6 +15,9 @@ from .const import (
     CONF_INCLUDE_GRUENGUT,
     CONF_INCLUDE_HAUSKEHRICHT,
     CONF_OCCURRENCES_COUNT,
+    CONF_OVERRIDE_GRUENGUT_DATES,
+    CONF_OVERRIDE_HAUSKEHRICHT_DATES,
+    CONF_OVERRIDE_WASCHABO_DATES,
     CONF_WASCHABO_TIER,
     DEFAULT_INCLUDE_GRUENGUT,
     DEFAULT_INCLUDE_HAUSKEHRICHT,
@@ -25,7 +29,20 @@ from .const import (
 from .coordinator import BruneggCoordinator
 
 
-def _relative_de(today: date, next_date: date | None) -> str:
+def _parse_override_dates(raw: str | None) -> list[date]:
+    if not raw:
+        return []
+    dates: list[date] = []
+    tokens = [t for t in re.split(r"[,\n;\s]+", raw.strip()) if t]
+    for t in tokens:
+        try:
+            dates.append(date.fromisoformat(t))
+        except ValueError:
+            continue
+    return sorted(set(dates))
+
+
+def _relative_text(today: date, next_date: date | None) -> str:
     if not next_date:
         return "Keine Termine"
     diff = (next_date - today).days
@@ -49,20 +66,24 @@ def _next_occurrences(dates: list[date], today: date, count: int) -> list[date]:
 
 @dataclass(frozen=True, kw_only=True)
 class BruneggSensorDescription(SensorEntityDescription):
-    key_name: str
     date_getter: Callable[[BruneggCoordinator, ConfigEntry], list[date]]
 
 
 SENSOR_DESCRIPTIONS: tuple[BruneggSensorDescription, ...] = (
     BruneggSensorDescription(
         key="health",
-        key_name="Entsorgung Health",
+        translation_key="health",
         date_getter=lambda _c, _entry: [],
     ),
     BruneggSensorDescription(
         key="hauskehricht",
-        key_name="Hauskehricht",
-        date_getter=lambda c, entry: c.data.parsed.hauskehricht_dates
+        translation_key="hauskehricht",
+        date_getter=lambda c, entry: (
+            _parse_override_dates(
+                ({**entry.data, **entry.options}).get(CONF_OVERRIDE_HAUSKEHRICHT_DATES)
+            )
+            or c.data.parsed.hauskehricht_dates
+        )
         if {**entry.data, **entry.options}.get(
             CONF_INCLUDE_HAUSKEHRICHT, DEFAULT_INCLUDE_HAUSKEHRICHT
         )
@@ -70,8 +91,13 @@ SENSOR_DESCRIPTIONS: tuple[BruneggSensorDescription, ...] = (
     ),
     BruneggSensorDescription(
         key="gruengut",
-        key_name="Grüngutabfuhr",
-        date_getter=lambda c, entry: c.data.parsed.gruengut_dates
+        translation_key="gruengut",
+        date_getter=lambda c, entry: (
+            _parse_override_dates(
+                ({**entry.data, **entry.options}).get(CONF_OVERRIDE_GRUENGUT_DATES)
+            )
+            or c.data.parsed.gruengut_dates
+        )
         if {**entry.data, **entry.options}.get(
             CONF_INCLUDE_GRUENGUT, DEFAULT_INCLUDE_GRUENGUT
         )
@@ -79,25 +105,30 @@ SENSOR_DESCRIPTIONS: tuple[BruneggSensorDescription, ...] = (
     ),
     BruneggSensorDescription(
         key="waschabo",
-        key_name="Waschaboservice",
-        date_getter=lambda c, entry: c.data.parsed.waschabo.get(
-            {
-                "bronze": "Bronze",
-                "silber": "Silber",
-                "gold": "Gold",
-            }.get(
-                entry.options.get(
-                    CONF_WASCHABO_TIER,
-                    entry.data.get(CONF_WASCHABO_TIER, DEFAULT_WASCHABO_TIER),
+        translation_key="waschabo",
+        date_getter=lambda c, entry: (
+            _parse_override_dates(
+                ({**entry.data, **entry.options}).get(CONF_OVERRIDE_WASCHABO_DATES)
+            )
+            or c.data.parsed.waschabo.get(
+                {
+                    "bronze": "Bronze",
+                    "silber": "Silber",
+                    "gold": "Gold",
+                }.get(
+                    entry.options.get(
+                        CONF_WASCHABO_TIER,
+                        entry.data.get(CONF_WASCHABO_TIER, DEFAULT_WASCHABO_TIER),
+                    ),
+                    "",
                 ),
-                "",
-            ),
-            [],
+                [],
+            )
         ),
     ),
     BruneggSensorDescription(
         key="gesamt",
-        key_name="Entsorgungskalender",
+        translation_key="gesamt",
         date_getter=lambda c, entry: _combined_dates(c, entry),
     ),
 )
@@ -111,12 +142,21 @@ def _combined_dates(coordinator: BruneggCoordinator, entry: ConfigEntry) -> list
 
     dates: list[date] = []
     if include_hk:
-        dates.extend(coordinator.data.parsed.hauskehricht_dates)
+        dates.extend(
+            _parse_override_dates(opts.get(CONF_OVERRIDE_HAUSKEHRICHT_DATES))
+            or coordinator.data.parsed.hauskehricht_dates
+        )
     if include_gg:
-        dates.extend(coordinator.data.parsed.gruengut_dates)
+        dates.extend(
+            _parse_override_dates(opts.get(CONF_OVERRIDE_GRUENGUT_DATES))
+            or coordinator.data.parsed.gruengut_dates
+        )
     if tier != WASCHABO_NONE:
         tier_de = {"bronze": "Bronze", "silber": "Silber", "gold": "Gold"}[tier]
-        dates.extend(coordinator.data.parsed.waschabo.get(tier_de, []))
+        dates.extend(
+            _parse_override_dates(opts.get(CONF_OVERRIDE_WASCHABO_DATES))
+            or coordinator.data.parsed.waschabo.get(tier_de, [])
+        )
     return sorted(set(dates))
 
 
@@ -145,7 +185,7 @@ class BruneggSensorEntity(CoordinatorEntity[BruneggCoordinator], SensorEntity):
         self.entity_description = description
         self._entry = entry
         self._attr_unique_id = f"{entry.entry_id}_{description.key}"
-        self._attr_name = description.key_name
+        self._attr_name = None
 
     @property
     def native_value(self) -> str:
@@ -153,7 +193,7 @@ class BruneggSensorEntity(CoordinatorEntity[BruneggCoordinator], SensorEntity):
             return "ok" if self.coordinator.last_update_success else "error"
         today = date.today()
         dates = self.entity_description.date_getter(self.coordinator, self._entry)
-        return _relative_de(today, _next_date(dates, today))
+        return _relative_text(today, _next_date(dates, today))
 
     @property
     def extra_state_attributes(self) -> dict[str, object]:

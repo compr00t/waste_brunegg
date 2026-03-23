@@ -18,6 +18,13 @@ def _month_year(y: int, month: int, day: int) -> date:
     return date(y, month, min(day, last))
 
 
+def _safe_month_year(y: int, month: int, day: int) -> date | None:
+    try:
+        return _month_year(y, month, day)
+    except (ValueError, OverflowError):
+        return None
+
+
 def _parse_loose_date_tuple(
     d1: str, d2: str, ypart: str | None, default_year: int
 ) -> date:
@@ -90,7 +97,9 @@ def _parse_hauskehricht(page3: str, year: int) -> list[date]:
 
     m = re.search(r"ab\s*(\d{1,2})[.,']\s*(\d{1,2})", block, re.I)
     if m:
-        start = _month_year(year, int(m.group(2)), int(m.group(1)))
+        start = _safe_month_year(year, int(m.group(2)), int(m.group(1))) or date(
+            year, 1, 1
+        )
     else:
         start = date(year, 1, 1)
 
@@ -117,32 +126,39 @@ def _parse_gruengut(page3: str, year: int) -> list[date]:
 
     sm = re.search(r"Sa\s*(\d{1,2})[.,](\d{1,2})", block, re.I)
     if sm:
-        dates.append(_month_year(year, int(sm.group(2)), int(sm.group(1))))
+        d = _safe_month_year(year, int(sm.group(2)), int(sm.group(1)))
+        if d:
+            dates.append(d)
 
     abm = re.search(r"ab\s*(\d{1,2})[.,](\d{1,2})", block, re.I)
     bism = re.search(r"bis\s*(\d{1,2})[.-](\d{1,2})(?:[.,](\d{2,4}))?", block, re.I)
     weekly_hint = re.search(r"w.{0,3}chentlich", block, re.I)
     if abm and bism and weekly_hint:
-        d_start = _month_year(year, int(abm.group(2)), int(abm.group(1)))
+        d_start = _safe_month_year(year, int(abm.group(2)), int(abm.group(1)))
         y_end = (
             int(bism.group(3))
             if bism.group(3) and len(bism.group(3)) == 4
             else year
         )
-        d_end = _month_year(y_end, int(bism.group(2)), int(bism.group(1)))
-        dates.extend(_all_weekdays(d_start, d_end, weekday=4))
+        d_end = _safe_month_year(y_end, int(bism.group(2)), int(bism.group(1)))
+        if d_start and d_end:
+            dates.extend(_all_weekdays(d_start, d_end, weekday=4))
 
     for m in re.finditer(
         r"Donnerstag\s*(\d{1,2})[.,](\d{1,2})(?:[.,](\d{2,4}))?", block, re.I
     ):
         y = int(m.group(3)) if m.group(3) and len(m.group(3)) == 4 else year
-        dates.append(_month_year(y, int(m.group(2)), int(m.group(1))))
+        d = _safe_month_year(y, int(m.group(2)), int(m.group(1)))
+        if d:
+            dates.append(d)
 
     m2 = re.search(
         r"(?:^|[^\d])(\d{1,2})[.,](\d{1,2})\s*,?\s*und\s+Donnerstag", block, re.I
     )
     if m2:
-        dates.append(_month_year(year, int(m2.group(2)), int(m2.group(1))))
+        d = _safe_month_year(year, int(m2.group(2)), int(m2.group(1)))
+        if d:
+            dates.append(d)
 
     return sorted(set(dates))
 
@@ -151,9 +167,13 @@ def _parse_waschabo_dates_chunk(chunk: str, year: int) -> list[date]:
     compact = re.sub(r"\s+", "", chunk)
     dates: list[date] = []
     for m in re.finditer(r"(\d{2})\.(\d{2})\.(\d{4})", compact):
-        dates.append(_month_year(int(m.group(3)), int(m.group(2)), int(m.group(1))))
+        d = _safe_month_year(int(m.group(3)), int(m.group(2)), int(m.group(1)))
+        if d:
+            dates.append(d)
     for m in re.finditer(r"(?<!\d)(\d{2})\.(\d{2})\.(?!\d)", compact):
-        dates.append(_month_year(year, int(m.group(2)), int(m.group(1))))
+        d = _safe_month_year(year, int(m.group(2)), int(m.group(1)))
+        if d:
+            dates.append(d)
     return sorted(set(dates))
 
 

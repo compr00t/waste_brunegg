@@ -3,13 +3,13 @@
     "step": {
       "user": {
         "title": "Brunegg Entsorgung",
-        "description": "Configure schedule source and included streams.",
+        "description": "Quelle und enthaltene Abholarten konfigurieren.",
         "data": {
-          "entsorgungsplan_url": "Entsorgungsplan URL",
-          "include_hauskehricht": "Include Hauskehricht",
-          "include_gruengut": "Include Gruengutabfuhr",
-          "waschabo_tier": "Waschabo tier",
-          "occurrences_count": "Number of next occurrences"
+          "entsorgungsplan_url": "Entsorgungsplan-URL",
+          "include_hauskehricht": "Hauskehricht einbeziehen",
+          "include_gruengut": "Grüngutabfuhr einbeziehen",
+          "waschabo_tier": "Waschabo-Stufe",
+          "occurrences_count": "Anzahl kommender Termine"
         }
       }
     }
@@ -17,13 +17,17 @@
   "options": {
     "step": {
       "init": {
-        "title": "Brunegg Entsorgung options",
+        "title": "Brunegg Entsorgung Optionen",
+        "description": "Extraktionslogik: {logic}\n\nAus PDF erkannte Werte (Vorschau):\nHauskehricht: {hauskehricht}\nGrüngut: {gruengut}\nWaschabo (gewählte Stufe): {waschabo}\n\nManuelle Korrektur: ISO-Daten als Liste eingeben (z.B. 2026-01-09,2026-01-23).",
         "data": {
-          "entsorgungsplan_url": "Entsorgungsplan URL",
-          "include_hauskehricht": "Include Hauskehricht",
-          "include_gruengut": "Include Gruengutabfuhr",
-          "waschabo_tier": "Waschabo tier",
-          "occurrences_count": "Number of next occurrences"
+          "entsorgungsplan_url": "Entsorgungsplan-URL",
+          "include_hauskehricht": "Hauskehricht einbeziehen",
+          "include_gruengut": "Grüngutabfuhr einbeziehen",
+          "waschabo_tier": "Waschabo-Stufe",
+          "occurrences_count": "Anzahl kommender Termine",
+          "override_hauskehricht_dates": "Override Hauskehricht Termine (ISO-Liste)",
+          "override_gruengut_dates": "Override Grüngut Termine (ISO-Liste)",
+          "override_waschabo_dates": "Override Waschabo Termine (ISO-Liste)"
         }
       }
     }

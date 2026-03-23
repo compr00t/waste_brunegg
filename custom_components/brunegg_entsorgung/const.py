@@ -5,7 +5,7 @@ from __future__ import annotations
 DOMAIN = "brunegg_entsorgung"
 PLATFORMS = ["sensor"]
 
-DEFAULT_NAME = "Brunegg Entsorgung"
+DEFAULT_NAME = "Brunegg Waste Collection"
 DEFAULT_ENTSORGUNGSPLAN_URL = "https://www.brunegg.ch/entsorgungsplan"
 
 CONF_ENTSORGUNGSPLAN_URL = "entsorgungsplan_url"
@@ -13,6 +13,9 @@ CONF_INCLUDE_HAUSKEHRICHT = "include_hauskehricht"
 CONF_INCLUDE_GRUENGUT = "include_gruengut"
 CONF_WASCHABO_TIER = "waschabo_tier"
 CONF_OCCURRENCES_COUNT = "occurrences_count"
+CONF_OVERRIDE_HAUSKEHRICHT_DATES = "override_hauskehricht_dates"
+CONF_OVERRIDE_GRUENGUT_DATES = "override_gruengut_dates"
+CONF_OVERRIDE_WASCHABO_DATES = "override_waschabo_dates"
 
 WASCHABO_NONE = "none"
 WASCHABO_BRONZE = "bronze"
