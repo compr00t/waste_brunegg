@@ -60,6 +60,24 @@ def _next_occurrences(dates: list[date], today: date, count: int) -> list[date]:
     return [d for d in dates if d >= today][:count]
 
 
+def _format_date_de(d: date) -> str:
+    months = {
+        1: "Januar",
+        2: "Februar",
+        3: "März",
+        4: "April",
+        5: "Mai",
+        6: "Juni",
+        7: "Juli",
+        8: "August",
+        9: "September",
+        10: "Oktober",
+        11: "November",
+        12: "Dezember",
+    }
+    return f"{d.day:02d}. {months[d.month]} {d.year}"
+
+
 @dataclass(frozen=True, kw_only=True)
 class BruneggSensorDescription(SensorEntityDescription):
     date_getter: Callable[[BruneggCoordinator, ConfigEntry], list[date]]
@@ -257,19 +275,20 @@ class BruneggSensorEntity(CoordinatorEntity[BruneggCoordinator], SensorEntity):
             )
 
             return {
-                "Logik": "\n".join(logik_lines),
-                "Daten": "\n".join(d.isoformat() for d in used_dates),
+                # Use lists instead of "\n"-joined strings so HA displays one item per line.
+                "Logik": logik_lines,
+                "Daten": [_format_date_de(d) for d in used_dates],
             }
 
         if self.entity_description.key in ("hauskehricht", "gruengut"):
             return {
-                "Nächste Leerung": nd.isoformat() if nd else "Keine Termine",
-                "Next occurences": "\n".join(d.isoformat() for d in next_dates),
+                "Nächste Leerung": _format_date_de(nd) if nd else "Keine Termine",
+                "Daten": [_format_date_de(d) for d in next_dates],
             }
 
         # waschabo
         return {
-            "Nächste Reinigung": nd.isoformat() if nd else "Keine Termine",
-            "Next occurences": "\n".join(d.isoformat() for d in next_dates),
+            "Nächste Reinigung": _format_date_de(nd) if nd else "Keine Termine",
+            "Daten": [_format_date_de(d) for d in next_dates],
             "Abo": configured_tier,
         }
