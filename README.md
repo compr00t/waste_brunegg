@@ -1,4 +1,4 @@
-# Brunegg Entsorgung (Home Assistant)
+# Brunegg Entsorgung
 
 Home Assistant custom integration for Brunegg waste schedules.
 
