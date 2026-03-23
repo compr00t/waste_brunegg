@@ -8,7 +8,8 @@
           "entsorgungsplan_url": "Entsorgungsplan URL",
           "include_hauskehricht": "Include Hauskehricht",
           "include_gruengut": "Include Gruengutabfuhr",
-          "waschabo_tier": "Waschabo tier"
+          "waschabo_tier": "Waschabo tier",
+          "occurrences_count": "Number of next occurrences"
         }
       }
     }
@@ -21,7 +22,8 @@
           "entsorgungsplan_url": "Entsorgungsplan URL",
           "include_hauskehricht": "Include Hauskehricht",
           "include_gruengut": "Include Gruengutabfuhr",
-          "waschabo_tier": "Waschabo tier"
+          "waschabo_tier": "Waschabo tier",
+          "occurrences_count": "Number of next occurrences"
         }
       }
     }

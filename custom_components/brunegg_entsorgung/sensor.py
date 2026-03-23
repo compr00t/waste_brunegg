@@ -13,9 +13,11 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     CONF_INCLUDE_GRUENGUT,
     CONF_INCLUDE_HAUSKEHRICHT,
+    CONF_OCCURRENCES_COUNT,
     CONF_WASCHABO_TIER,
     DEFAULT_INCLUDE_GRUENGUT,
     DEFAULT_INCLUDE_HAUSKEHRICHT,
+    DEFAULT_OCCURRENCES_COUNT,
     DEFAULT_WASCHABO_TIER,
     DOMAIN,
     WASCHABO_NONE,
@@ -39,6 +41,10 @@ def _next_date(dates: list[date], today: date) -> date | None:
         if d >= today:
             return d
     return None
+
+
+def _next_occurrences(dates: list[date], today: date, count: int) -> list[date]:
+    return [d for d in dates if d >= today][:count]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -165,9 +171,13 @@ class BruneggSensorEntity(CoordinatorEntity[BruneggCoordinator], SensorEntity):
         today = date.today()
         dates = self.entity_description.date_getter(self.coordinator, self._entry)
         nd = _next_date(dates, today)
+        options = {**self._entry.data, **self._entry.options}
+        occurrences_count = options.get(CONF_OCCURRENCES_COUNT, DEFAULT_OCCURRENCES_COUNT)
+        next_dates = _next_occurrences(dates, today, occurrences_count)
         return {
             "next_date": nd.isoformat() if nd else None,
-            "upcoming_dates": [d.isoformat() for d in dates[:20]],
+            "next_occurrences": [d.isoformat() for d in next_dates],
+            "occurrences_count": occurrences_count,
             "plan_year": self.coordinator.data.parsed.plan_year,
             "source_pdf": self.coordinator.data.pdf_url,
         }

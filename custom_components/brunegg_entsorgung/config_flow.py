@@ -9,12 +9,16 @@ from .const import (
     CONF_ENTSORGUNGSPLAN_URL,
     CONF_INCLUDE_GRUENGUT,
     CONF_INCLUDE_HAUSKEHRICHT,
+    CONF_OCCURRENCES_COUNT,
     CONF_WASCHABO_TIER,
     DEFAULT_ENTSORGUNGSPLAN_URL,
     DEFAULT_INCLUDE_GRUENGUT,
     DEFAULT_INCLUDE_HAUSKEHRICHT,
+    DEFAULT_OCCURRENCES_COUNT,
     DEFAULT_WASCHABO_TIER,
     DOMAIN,
+    MAX_OCCURRENCES_COUNT,
+    MIN_OCCURRENCES_COUNT,
     WASCHABO_TIERS,
 )
 
@@ -42,6 +46,13 @@ def _schema(defaults: dict[str, Any]) -> vol.Schema:
                 CONF_WASCHABO_TIER,
                 default=defaults.get(CONF_WASCHABO_TIER, DEFAULT_WASCHABO_TIER),
             ): vol.In(WASCHABO_TIERS),
+            vol.Required(
+                CONF_OCCURRENCES_COUNT,
+                default=defaults.get(CONF_OCCURRENCES_COUNT, DEFAULT_OCCURRENCES_COUNT),
+            ): vol.All(
+                vol.Coerce(int),
+                vol.Range(min=MIN_OCCURRENCES_COUNT, max=MAX_OCCURRENCES_COUNT),
+            ),
         }
     )
 

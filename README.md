@@ -1,7 +1,7 @@
 # Brunegg Entsorgung (Home Assistant)
 
-[![Open your Home Assistant instance and show the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs.svg)](https://my.home-assistant.io/redirect/hacs_store/)
-![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=patrick&repository=waste_brunegg&category=integration)
+[![HACS](https://img.shields.io/badge/HACS-Default-41BDF5.svg?logo=home-assistant&logoColor=white)](https://github.com/hacs/integration)
 
 Home Assistant custom integration for Brunegg waste schedules.
 
