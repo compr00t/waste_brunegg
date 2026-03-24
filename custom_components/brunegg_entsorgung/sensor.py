@@ -11,6 +11,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -37,17 +38,6 @@ SENSOR_NAMES_DE: dict[str, str] = {
     "health": "Zustand",
     "last_fetch": "Synchronisation",
 }
-
-def _relative_text(today: date, next_date: date | None) -> str:
-    if not next_date:
-        return "Keine Termine"
-    diff = (next_date - today).days
-    if diff <= 0:
-        return "Heute"
-    if diff == 1:
-        return "Morgen"
-    return f"in {diff} Tagen"
-
 
 def _next_date(dates: list[date], today: date) -> date | None:
     for d in dates:
@@ -106,6 +96,7 @@ SENSOR_DESCRIPTIONS: tuple[BruneggSensorDescription, ...] = (
         key="hauskehricht",
         translation_key="hauskehricht",
         icon="mdi:trash-can-outline",
+        device_class=SensorDeviceClass.DATE,
         date_getter=lambda c, entry: (
             c.data.parsed.hauskehricht_dates
             if {**entry.data, **entry.options}.get(
@@ -118,6 +109,7 @@ SENSOR_DESCRIPTIONS: tuple[BruneggSensorDescription, ...] = (
         key="gruengut",
         translation_key="gruengut",
         icon="mdi:leaf",
+        device_class=SensorDeviceClass.DATE,
         date_getter=lambda c, entry: (
             c.data.parsed.gruengut_dates
             if {**entry.data, **entry.options}.get(
@@ -130,6 +122,7 @@ SENSOR_DESCRIPTIONS: tuple[BruneggSensorDescription, ...] = (
         key="waschabo",
         translation_key="waschabo",
         icon="mdi:washing-machine",
+        device_class=SensorDeviceClass.DATE,
         date_getter=lambda c, entry: (
             c.data.parsed.waschabo.get(
                 {
@@ -151,6 +144,7 @@ SENSOR_DESCRIPTIONS: tuple[BruneggSensorDescription, ...] = (
         key="gesamt",
         translation_key="gesamt",
         icon="mdi:calendar-month",
+        device_class=SensorDeviceClass.DATE,
         date_getter=lambda c, entry: _combined_dates(c, entry),
     ),
 )
@@ -207,6 +201,24 @@ class BruneggSensorEntity(CoordinatorEntity[BruneggCoordinator], SensorEntity):
             manufacturer="Gemeinde Brunegg",
             model="Entsorgungsplan",
         )
+        self._unsub_midnight = None
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if self.entity_description.key in ("hauskehricht", "gruengut", "waschabo", "gesamt"):
+            # Recompute next-date state daily without triggering a PDF fetch.
+            self._unsub_midnight = async_track_time_change(
+                self.hass, self._async_handle_midnight, hour=0, minute=0, second=5
+            )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsub_midnight is not None:
+            self._unsub_midnight()
+            self._unsub_midnight = None
+        await super().async_will_remove_from_hass()
+
+    async def _async_handle_midnight(self, now) -> None:
+        self.async_write_ha_state()
 
     @property
     def native_value(self) -> Any:
@@ -221,7 +233,7 @@ class BruneggSensorEntity(CoordinatorEntity[BruneggCoordinator], SensorEntity):
 
         today = date.today()
         dates = self.entity_description.date_getter(self.coordinator, self._entry)
-        return _relative_text(today, _next_date(dates, today))
+        return _next_date(dates, today)
 
     @property
     def extra_state_attributes(self) -> dict[str, object]:
