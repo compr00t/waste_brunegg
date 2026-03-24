@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime, time
 from typing import Any, Callable
 
 from homeassistant.components.sensor import (
@@ -15,6 +15,7 @@ from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_INCLUDE_GRUENGUT,
@@ -73,6 +74,10 @@ def _join_lines(values: list[str]) -> str:
     return "\u2028".join(values)
 
 
+def _date_to_local_datetime(d: date) -> datetime:
+    return datetime.combine(d, time(hour=7, minute=0), tzinfo=dt_util.DEFAULT_TIME_ZONE)
+
+
 @dataclass(frozen=True, kw_only=True)
 class BruneggSensorDescription(SensorEntityDescription):
     date_getter: Callable[[BruneggCoordinator, ConfigEntry], list[date]]
@@ -96,7 +101,7 @@ SENSOR_DESCRIPTIONS: tuple[BruneggSensorDescription, ...] = (
         key="hauskehricht",
         translation_key="hauskehricht",
         icon="mdi:trash-can-outline",
-        device_class=SensorDeviceClass.DATE,
+        device_class=SensorDeviceClass.TIMESTAMP,
         date_getter=lambda c, entry: (
             c.data.parsed.hauskehricht_dates
             if {**entry.data, **entry.options}.get(
@@ -109,7 +114,7 @@ SENSOR_DESCRIPTIONS: tuple[BruneggSensorDescription, ...] = (
         key="gruengut",
         translation_key="gruengut",
         icon="mdi:leaf",
-        device_class=SensorDeviceClass.DATE,
+        device_class=SensorDeviceClass.TIMESTAMP,
         date_getter=lambda c, entry: (
             c.data.parsed.gruengut_dates
             if {**entry.data, **entry.options}.get(
@@ -122,7 +127,7 @@ SENSOR_DESCRIPTIONS: tuple[BruneggSensorDescription, ...] = (
         key="waschabo",
         translation_key="waschabo",
         icon="mdi:washing-machine",
-        device_class=SensorDeviceClass.DATE,
+        device_class=SensorDeviceClass.TIMESTAMP,
         date_getter=lambda c, entry: (
             c.data.parsed.waschabo.get(
                 {
@@ -144,7 +149,7 @@ SENSOR_DESCRIPTIONS: tuple[BruneggSensorDescription, ...] = (
         key="gesamt",
         translation_key="gesamt",
         icon="mdi:calendar-month",
-        device_class=SensorDeviceClass.DATE,
+        device_class=SensorDeviceClass.TIMESTAMP,
         date_getter=lambda c, entry: _combined_dates(c, entry),
     ),
 )
@@ -231,9 +236,12 @@ class BruneggSensorEntity(CoordinatorEntity[BruneggCoordinator], SensorEntity):
                 return None
             return last_update
 
-        today = date.today()
+        today = dt_util.now().date()
         dates = self.entity_description.date_getter(self.coordinator, self._entry)
-        return _next_date(dates, today)
+        nd = _next_date(dates, today)
+        if nd is None:
+            return None
+        return _date_to_local_datetime(nd)
 
     @property
     def extra_state_attributes(self) -> dict[str, object]:
@@ -268,7 +276,7 @@ class BruneggSensorEntity(CoordinatorEntity[BruneggCoordinator], SensorEntity):
             .get(tier, "Kein Waschabo")
         )
 
-        today = date.today()
+        today = dt_util.now().date()
         used_dates = self.entity_description.date_getter(self.coordinator, self._entry)
         nd = _next_date(used_dates, today)
         next_dates = _next_occurrences(used_dates, today, occurrences_count)
