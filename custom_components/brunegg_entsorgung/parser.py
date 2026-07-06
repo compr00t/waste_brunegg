@@ -196,8 +196,8 @@ def parse_entsorgungsplan_pdf(pdf_bytes: bytes) -> ParsedPlan:
         target_page_text = ""
         for page in pdf.pages:
             text = page.extract_text() or ""
-            # Scan pages for our main target keywords
-            if "hauskehricht" in text.lower() or "waschaboservice" in text.lower() or "waschaboseruice" in text.lower():
+            # Scan pages for our main target keywords - MUST contain both Hauskehricht and Waschaboservice
+            if "hauskehricht" in text.lower() and ("waschaboservice" in text.lower() or "waschaboseruice" in text.lower()):
                 target_page_text = text
                 break
         
