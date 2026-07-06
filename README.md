@@ -8,11 +8,7 @@ It fetches the latest PDF from the Gemeinde Brunegg Entsorgungsplan page, extrac
 - Grüngutabfuhr dates
 - Waschaboservice dates (Bronze / Silber / Gold)
 
-and creates Home Assistant sensors with human-readable next occurrence states:
-
-- `Heute`
-- `Morgen`
-- `in X Tagen`
+and creates Home Assistant sensors with next collection/reinigung as date-time values.
 
 ## Installation
 

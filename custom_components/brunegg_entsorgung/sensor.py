@@ -70,8 +70,7 @@ def _format_date_de(d: date) -> str:
 
 
 def _join_lines(values: list[str]) -> str:
-    # HA attribute popover tends to flatten lists; using U+2028 forces a visible line break.
-    return "\u2028".join(values)
+    return ", ".join(values)
 
 
 def _date_to_local_datetime(d: date) -> datetime:

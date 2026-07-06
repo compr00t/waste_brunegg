@@ -193,15 +193,28 @@ def _parse_waschabo_lines(page3: str, year: int) -> dict[str, list[date]]:
 
 def parse_entsorgungsplan_pdf(pdf_bytes: bytes) -> ParsedPlan:
     with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-        if len(pdf.pages) < 3:
-            raise ValueError("PDF has fewer than 3 pages")
-        page3 = pdf.pages[2].extract_text() or ""
+        target_page_text = ""
+        for page in pdf.pages:
+            text = page.extract_text() or ""
+            # Scan pages for our main target keywords
+            if "hauskehricht" in text.lower() or "waschaboservice" in text.lower() or "waschaboseruice" in text.lower():
+                target_page_text = text
+                break
+        
+        # Fallback to page 3 (index 2) if dynamic keyword matching fails
+        if not target_page_text:
+            if len(pdf.pages) >= 3:
+                target_page_text = pdf.pages[2].extract_text() or ""
+            elif len(pdf.pages) > 0:
+                target_page_text = pdf.pages[0].extract_text() or ""
+            else:
+                raise ValueError("PDF has no pages")
 
-    year = _infer_year_from_text(page3)
+    year = _infer_year_from_text(target_page_text)
     return ParsedPlan(
         plan_year=year,
-        pdf_text_page3=page3,
-        hauskehricht_dates=_parse_hauskehricht(page3, year),
-        gruengut_dates=_parse_gruengut(page3, year),
-        waschabo=_parse_waschabo_lines(page3, year),
+        pdf_text_page3=target_page_text,
+        hauskehricht_dates=_parse_hauskehricht(target_page_text, year),
+        gruengut_dates=_parse_gruengut(target_page_text, year),
+        waschabo=_parse_waschabo_lines(target_page_text, year),
     )
